@@ -7,5 +7,3 @@ rojig:
 packages:
   # Portals for Flatpak
   - xdg-desktop-portal-gtk
-repos:
-  - fedora-30

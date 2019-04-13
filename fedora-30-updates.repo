@@ -1,7 +1,0 @@
-[fedora-30-updates]
-name=Fedora 30 $basearch Updates
-#baseurl=http://download.fedoraproject.org/pub/fedora/linux//updates/30/$basearch/os/
-mirrorlist=https://mirrors.fedoraproject.org/metalink?repo=updates-released-f30&arch=$basearch
-enabled=0
-gpgcheck=1
-metadata_expire=1d

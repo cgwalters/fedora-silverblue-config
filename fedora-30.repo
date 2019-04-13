@@ -1,7 +1,0 @@
-[fedora-30]
-name=Fedora 30 $basearch
-baseurl=http://download.fedoraproject.org/pub/fedora/linux//development/30/Everything/$basearch/os/
-#mirrorlist=https://mirrors.fedoraproject.org/metalink?repo=30&arch=$basearch
-enabled=0
-gpgcheck=1
-metadata_expire=1d

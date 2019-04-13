@@ -12,5 +12,23 @@ packages:
   # expect people to run apps in containers?
   - qgnomeplatform
 
-repos:
-  - fedora-30
+postprocess:
+  - |
+    #!/usr/bin/bash
+    set -xeuo pipefail
+    # Do a dance to enable initial setup.  The default of requiring a file to
+    # exist in /var conflicts with the libostree "/var starts empty" model, so
+    # invert it.
+    echo '[daemon]' >> /etc/gdm/custom.conf
+    echo 'InitialSetupEnable=true' >> /etc/gdm/custom.conf
+    cat > /usr/lib/systemd/system/silverblue-initial-setup.service << 'EOF'
+    [Unit]
+    ConditionFirstBoot=true
+    [Service]
+    Before=gdm.service
+    ExecStart=/bin/touch /var/lib/gdm/run-initial-setup
+    EOF
+    ln -s ../silverblue-initial-setup.service /usr/lib/systemd/system/multi-user.target.wants
+    # And disable systemd's builtin one
+    rm -vf /usr/lib/systemd/system/systemd-firstboot.service /usr/bin/systemd-firstboot \
+           /usr/lib/systemd/*.target.wants/systemd-firstboot.service
