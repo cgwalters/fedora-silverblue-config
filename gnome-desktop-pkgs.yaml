@@ -54,6 +54,8 @@ packages:
   - libsane-hpaio
   - mesa-libEGL
   - mousetweaks
+  - nautilus
+  - nautilus-sendto
   - polkit
   - rygel
   - tracker

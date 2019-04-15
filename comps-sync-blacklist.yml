@@ -133,8 +133,6 @@ desktop_blacklist:
     - gnome-screenshot
     - gnome-weather
     - jwhois
-    - nautilus
-    - nautilus-sendto
     - orca
     - rdist
     - sane-backends-drivers-scanners
@@ -155,7 +153,6 @@ desktop_blacklist:
     # Non-critical apps -> Flatpak
     - akregator
     - cagibi
-    - dolphin
     - gnome-keyring-pam
     - gwenview
     - kaddressbook
@@ -206,11 +203,7 @@ desktop_blacklist:
     - abrt-desktop
     - dnfdragora-updater
     # Non-critical apps -> Flatpak
-    - Thunar
     - fros-recordmydesktop
-    - thunar-archive-plugin
-    - thunar-media-tags-plugin
-    - thunar-volman
     - tumbler
     # Misc
     - alsa-utils
@@ -224,9 +217,6 @@ desktop_blacklist:
     - dnfdragora-updater
     # Non-critical apps -> Flatpak
     - ark
-    - falkon
-    - falkon-kwallet
-    - pcmanfm-qt
   deepin-desktop:
     # Incompatible with ostree for various reasons
     - dnfdragora-updater
