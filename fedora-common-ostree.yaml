@@ -5,7 +5,19 @@ mutate-os-release: "30"
 
 include:
   - fedora-common-ostree-pkgs.yaml
-  - fedora-coreos-config/manifest.yaml
+  - fedora-coreos-config/fedora-coreos-base.yaml
+
+# Disable the special `core` user; it's a server thing.
+# For desktops we expect to use gnome-initial-setup.
+postprocess:
+  - |
+    #/usr/bin/bash
+    exec rm -v /usr/lib/dracut/modules.d/40ignition-conf/base.ign
+
+repos:
+  - fedora
+  - fedora-updates
+  - fedora-coreos-pool
 
 packages:
   - git-core

@@ -24,8 +24,8 @@ postprocess:
     cat > /usr/lib/systemd/system/silverblue-initial-setup.service << 'EOF'
     [Unit]
     ConditionFirstBoot=true
-    [Service]
     Before=gdm.service
+    [Service]
     ExecStart=/bin/touch /var/lib/gdm/run-initial-setup
     EOF
     ln -s ../silverblue-initial-setup.service /usr/lib/systemd/system/multi-user.target.wants
