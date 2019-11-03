@@ -6,7 +6,7 @@ releasever: 31
 
 include:
   - fedora-common-ostree-pkgs.yaml
-  - fedora-coreos-config/fedora-coreos-base.yaml
+  - fedora-coreos-config/manifests/fedora-coreos-base.yaml
 
 repos:
   - fedora
