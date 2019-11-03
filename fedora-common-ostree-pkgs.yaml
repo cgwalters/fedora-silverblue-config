@@ -46,7 +46,6 @@ packages:
   - e2fsprogs
   - ethtool
   - fedora-bookmarks
-  - fedora-release-workstation
   - fedora-user-agent-chrome
   - fedora-workstation-backgrounds
   - file

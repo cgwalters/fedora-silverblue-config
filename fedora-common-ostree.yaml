@@ -8,13 +8,6 @@ include:
   - fedora-common-ostree-pkgs.yaml
   - fedora-coreos-config/fedora-coreos-base.yaml
 
-# Disable the special `core` user; it's a server thing.
-# For desktops we expect to use gnome-initial-setup.
-postprocess:
-  - |
-    #/usr/bin/bash
-    exec rm -v /usr/lib/dracut/modules.d/40ignition-conf/base.ign
-
 repos:
   - fedora
   - fedora-updates
@@ -27,6 +20,7 @@ packages:
   # Container management
   - buildah
   - podman
+  - container-selinux
   - skopeo
   - toolbox
   # Flatpak support
