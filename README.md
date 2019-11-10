@@ -1,72 +1,26 @@
-For some background, see:
+Fedora Silverblue Config
+===
 
- - https://fedoraproject.org/wiki/Workstation/AtomicWorkstation
- - https://fedoraproject.org/wiki/Changes/WorkstationOstree
- 
-(Note also this repo obsoletes https://pagure.io/atomic-ws)
+This is a fork of https://pagure.io/workstation-ostree-config/
+that is based on [Fedora CoreOS](https://coreos.fedoraproject.org/)
+technologies, namely [Ignition](https://github.com/coreos/ignition)
+and [rpm-ostree](https://github.com/coreos/rpm-ostree/).
 
-High level design
------------------
+Why?
+===
 
-The goal of the system is to be a workstation, using
-rpm-ostree for the base OS, and a combination of
-Docker and Flatpak containers, as well as virtualization
-tools such as Vagrant.
+The goal here is to make Fedora CoreOS really more of the "core",
+and other editions (such as Silverblue and IoT) derive from it.
+From an end user perspective, this makes everything significantly
+more coherent.
 
-Status
-------
+This config "inherits" directly from [fedora-coreos-config](https://github.com/coreos/fedora-coreos-config)
+via a git submodule. The projects also then share build tooling as well, most notably
+[coreos-assembler](https://github.com/coreos/coreos-assembler/) and
+ideally more of the [FCOS pipeline](https://github.com/coreos/fedora-coreos-pipeline).
 
-This project is actively maintained and is ready for use
-by sophisticated and interested users, but not ready
-for widespread promotion.
+Where do I get it?
+===
 
-See some [https://lists.fedoraproject.org/archives/list/desktop@lists.fedoraproject.org/thread/J6BJS7Z4NKNOQUZWGYXZZIEKYMWBBSUY/](discussion about the first release).
-
-Installing
-------------
-
-There are ISOs available for [Fedora 27](https://download.fedoraproject.org/pub/fedora/linux/releases/27/WorkstationOstree/x86_64/iso/).
-
-Alternatively, see a guide for [installing inside an existing system](https://pagure.io/workstation-ostree-config/blob/master/f/README-install-inside.md).
-
-Important issues:
------------------------
-
- - [flatpak system repo](https://github.com/flatpak/flatpak/issues/113#issuecomment-247022006)
-
-Using the system
---------------------
-
-One of the first things you should do use is use a container runtime of your
-choice to manage one or more "pet" containers.  This is where you will use
-`yum/dnf` to install utilities.
-
-With `docker` for example, you can use the `-v /srv:/srv` command line option so
-these containers can share content with your host (such as git repositories).
-Note that if you want to share content between multiple Docker containers and
-the host (e.g. your desktop session), you should execute (once):
-
-```
-sudo chcon -R -h -t container_file_t /var/srv
-```
-
-Next, let's try flatpak. Before you do: There's a known flatpak issue on
-AtomicWS - run [this workaround](https://github.com/flatpak/flatpak/issues/113#issuecomment-247022006),
-which you only need to do once. After that, [try flatpak](http://flatpak.org/apps.html).
-
-If you are a developer for server applications,
-try [oc cluster up](https://github.com/openshift/origin/blob/master/docs/cluster_up_down.md) to
-create a local OpenShift v3 cluster.
-
-Finally, try out `rpm-ostree install` to layer additional packages directly on
-the host. This is needed for "host extensions" - privileged software that
-doesn't make sense to live in a container. For example, `rpm-ostree install
-powerline` to use that software for the shell prompts of the host.  Another
-good example is `rpm-ostree install vagrant-libvirt` to use [Vagrant](https://www.vagrantup.com/)
-to manage VMs.
-
-Future work
------------
-
- - GNOME Software support for both rpm-ostree/flatpak and possibly docker
- - automated tests that run on this content
+Builds are currently running in the "coreosci" cluster, see
+https://jenkins-walters-silverblue.apps.coreosci.gcp.devcluster.openshift.com/job/walters-silverblue/job/walters-silverblue-walters-fedora-coreos-pipeline
