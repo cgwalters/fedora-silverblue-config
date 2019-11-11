@@ -1,0 +1,389 @@
+<!-- https://github.com/jlebon/fedora-coreos-browser -->
+
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <!-- PROD: <script src="https://cdn.jsdelivr.net/npm/vue"></script> -->
+        <!-- DEVEL: <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script> -->
+        <script src="https://cdn.jsdelivr.net/npm/vue"></script>
+        <style>a.js {cursor: pointer; color: blue; text-decoration: underline;}</style>
+        <title>Fedora CoreOS Build Browser</title>
+    </head>
+    <body>
+        <div id="app">
+            Stream:
+             <select v-model="stream">
+                <option value="walters">walters</option>
+            </select>
+            <input v-model="developer" v-if="stream == 'developer'">
+            <button v-on:click="refreshBuilds">Refresh</button>
+            <div v-if="loading">
+                Loading...
+            </div>
+            <div v-else-if="builds.length > 0">
+                <div v-for="build in builds">
+                    <hr>
+                    <p>Build: <span style="font-weight: bold">{{ build.id }}</span>
+                        (<a v-bind:href="getObjectUrl(build, 'meta.json')">meta.json</a>,
+                         <a v-bind:href="getObjectUrl(build, 'commitmeta.json')">commitmeta.json</a>)
+                          <span v-if="build.meta" v-bind:title="build.meta['coreos-assembler.build-timestamp']">
+                            — {{ timeSince(build.meta['coreos-assembler.build-timestamp']) }}
+                          </span>
+                    </p>
+                    <div v-if="build.meta" style="margin-left: 1em">
+                        <p>OSTree:</p>
+                        <ul>
+                            <li>Commit: {{ build.meta['ostree-commit'] }}
+                                (<a v-bind:href="getOSTreeUrl(build)">download</a>)
+                            </li>
+                            <li v-if="build.meta['fedora-coreos.parent-commit']">
+                                Parent Commit: {{ build.meta['fedora-coreos.parent-commit'] }} ({{ build.meta['fedora-coreos.parent-version'] }})
+                            </li>
+                            <li v-if="build.commitmeta">Packages: (<a class="js" v-on:click="build.commitmeta.showImportantPkgsOnly = !build.commitmeta.showImportantPkgsOnly">{{ build.commitmeta.showImportantPkgsOnly ? "expand" : "collapse" }}</a>)
+                                <ul v-if="build.commitmeta.showImportantPkgsOnly">
+                                    <li v-for="pkg in build.commitmeta.importantPkgs">
+                                        {{ getPkgNevraFull(pkg) }}
+                                    </li>
+                                </ul>
+                                <ul v-else>
+                                    <li v-for="pkg in build.commitmeta['rpmostree.rpmdb.pkglist']">
+                                        {{ getPkgNevraFull(pkg) }}
+                                    </li>
+                                </ul>
+                            </li>
+                        </ul>
+                        <div v-if="build.meta.pkgdiff">
+                                <div v-if="build.meta.pkgdiff.added.length > 0">
+                                    <p>Added:</p>
+                                    <ul>
+                                        <li v-for="pkg in build.meta.pkgdiff.added">
+                                            {{ getPkgNevra(pkg[2]["NewPackage"]) }}
+                                        </li>
+                                    </ul>
+                                </div>
+                                <div v-if="build.meta.pkgdiff.removed.length > 0">
+                                    <p>Removed:</p>
+                                    <ul>
+                                        <li v-for="pkg in build.meta.pkgdiff.removed">
+                                            {{ getPkgNevra(pkg[2]["PreviousPackage"]) }}
+                                        </li>
+                                    </ul>
+                                </div>
+                                <div v-if="build.meta.pkgdiff.upgraded.length > 0">
+                                    <p>Upgraded:</p>
+                                    <ul>
+                                        <li v-for="pkg in build.meta.pkgdiff.upgraded">
+                                            {{ pkg[2]["PreviousPackage"][0] }} {{ getPkgEvra(pkg[2]["PreviousPackage"]) }} → {{ getPkgEvra(pkg[2]["NewPackage"]) }}
+                                        </li>
+                                    </ul>
+                                </div>
+                                <div v-if="build.meta.pkgdiff.downgraded.length > 0">
+                                    <p>Downgraded:</p>
+                                    <ul>
+                                        <li v-for="pkg in build.meta.pkgdiff.downgraded">
+                                            {{ pkg[2]["PreviousPackage"][0] }} {{ getPkgEvra(pkg[2]["PreviousPackage"]) }} → {{ getPkgEvra(pkg[2]["NewPackage"]) }}
+                                        </li>
+                                    </ul>
+                                </div>
+                        </div>
+                        <p>Images:</p>
+                        <ul>
+                            <li v-if="'qemu' in build.meta.images">
+                                QEMU: <span v-html="getImageUrl(build, 'qemu')"></span>
+                            </li>
+                            <li v-if="'metal' in build.meta.images">
+                                Bare Metal: <span v-html="getImageUrl(build, 'metal')"></span>
+                            </li>
+                            <li v-if="'aws' in build.meta.images">
+                                AWS: <span v-html="getImageUrl(build, 'aws')"></span>
+                            </li>
+                            <li v-if="'openstack' in build.meta.images">
+                                OpenStack: <span v-html="getImageUrl(build, 'openstack')"></span>
+                            </li>
+                            <li v-if="'vmware' in build.meta.images">
+                                VMware: <span v-html="getImageUrl(build, 'vmware')"></span>
+                            </li>
+                            <li v-if="'iso' in build.meta.images">
+                                Installer ISO: <span v-html="getImageUrl(build, 'iso')"></span>
+                            </li>
+                            <li v-if="'kernel' in build.meta.images">
+                                Installer Kernel: <span v-html="getImageUrl(build, 'kernel')"></span>
+                            </li>
+                            <li v-if="'initramfs' in build.meta.images">
+                                Installer Initramfs: <span v-html="getImageUrl(build, 'initramfs')"></span>
+                            </li>
+                            <li v-if="'live-iso' in build.meta.images">
+                                Live ISO: <span v-html="getImageUrl(build, 'live-iso')"></span>
+                            </li>
+                            <li v-if="'live-kernel' in build.meta.images">
+                                Live Kernel: <span v-html="getImageUrl(build, 'live-kernel')"></span>
+                            </li>
+                            <li v-if="'live-initramfs' in build.meta.images">
+                                Live Initramfs: <span v-html="getImageUrl(build, 'live-initramfs')"></span>
+                            </li>
+                        </ul>
+                        <div v-if="'amis' in build.meta">
+                            <p>AMIs:</p>
+                            <ul>
+                                <li v-for="ami in build.meta.amis">
+                                    {{ ami["name"] }}: {{ ami["hvm"] }}
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div v-else style="margin-left: 1em">
+                        Loading...
+                    </div>
+                </div>
+                <div v-if="unshown_builds.length > 0">
+                <hr>
+                <p>
+                    Hiding <span style="font-weight: bold">{{ unshown_builds.length }}</span> older builds
+                    (load <a class="js" v-if="unshown_builds.length > 5" v-on:click="loadMoreBuilds(5)">5</a>
+                          <a class="js" v-if="unshown_builds.length > 10" v-on:click="loadMoreBuilds(10)">10</a>
+                          <a class="js" v-on:click="loadMoreBuilds(-1)">all</a>)
+                </p>
+                </div>
+            </div>
+            <div v-else>
+                No builds found!
+            </div>
+        </div>
+        <script>
+            // PROD:
+            //const baseProdUrl = 'https://builds.coreos.fedoraproject.org/prod/streams'
+            //const baseDevelUrl = 'https://builds.coreos.fedoraproject.org/devel/streams'
+            // DEVEL:
+            //const baseProdUrl = 'https://s3.amazonaws.com/fcos-builds/prod/streams'
+            //const baseDevelUrl = 'https://s3.amazonaws.com/fcos-builds/devel/streams'
+
+            const baseProdUrl = 'https://coreosci-walters-silverblue.s3.amazonaws.com/devel/streams';
+
+            const initialBuildsShown = 5;
+
+            // pkgdiff enum to str
+            const diffType = ["added", "removed", "upgraded", "downgraded"];
+            const importantPkgs = ["kernel", "systemd", "rpm-ostree", "ignition"];
+
+            function getBaseUrl(stream, developer) {
+                return stream != "developer"
+                    ? `${baseProdUrl}/${stream}`
+                    : `${baseDevelUrl}/${developer}`;
+            }
+
+            function getArtifactUrl(base, build, path, legacy) {
+                if (legacy) {
+                    return `${base}/${build.id}/${path}`;
+                }
+                // XXX: just return for the first arch for now; multi-arch
+                // requires reworking the page layout
+                return `${base}/${build.id}/${build.arches[0]}/${path}`;
+            }
+
+            function createArtifactLink(base, build, path, legacy) {
+                var url = getArtifactUrl(base, build, path, legacy);
+                return `<a href="${url}">${path}</a>`;
+            }
+
+            function fetchBuilds(base) {
+                return fetch(`${base}/builds.json`)
+                    .then(response => response.ok ? response.json() : {"builds": []})
+                    .then(data => {
+                        if (!('schema-version' in data) || data["schema-version"] != "1.0.0") {
+                            // in legacy mode, just assume we only built x86_64
+                            return [true, data.builds.map(id => ({'id': id, 'arches': ['x86_64'], 'meta': null, 'commitmeta': null}))];
+                        } else {
+                            return [false, data.builds.map(build => ({'id': build.id, 'arches': build.arches, 'meta': null, 'commitmeta': null}))];
+                        }
+                    });
+            }
+
+            function sortPkgDiff(meta) {
+                if ("pkgdiff" in meta) {
+                    var newdiff = {};
+                    diffType.forEach(t => newdiff[t] = []);
+                    meta["pkgdiff"].forEach(d => newdiff[diffType[d[1]]].push(d));
+                    meta["pkgdiff"] = newdiff;
+                }
+            }
+
+            function findImportantPkgs(commitmeta) {
+                var r = [];
+                commitmeta["rpmostree.rpmdb.pkglist"].forEach(pkg => {
+                    if (importantPkgs.includes(pkg[0])) {
+                        r.push(pkg);
+                    }
+                });
+                return r;
+            }
+
+            function fetchBuild(base, build, legacy) {
+                fetchBuildMeta(base, build, legacy).then(result => {
+                    [basearch, meta] = result;
+                    sortPkgDiff(meta);
+                    // show the build metadata
+                    build.meta = meta;
+                    // and fetch extra commit metadata in async
+                    fetchBuildCommitMeta(base, build, basearch, legacy).then(commitmeta => {
+                        commitmeta["importantPkgs"] = findImportantPkgs(commitmeta);
+                        commitmeta["showImportantPkgsOnly"] = true;
+                        build.commitmeta = commitmeta;
+                    });
+                });
+            }
+
+            function fetchBuildMeta(base, build, legacy) {
+                if (legacy) {
+                    return fetch(`${base}/${build.id}/meta.json`)
+                        .then(response => Promise.all([build.arches[0], response.ok ? response.json() : {}]));
+                }
+                // XXX: just fetch the meta for the first arch right now
+                return fetch(`${base}/${build.id}/${build.arches[0]}/meta.json`)
+                    .then(response => Promise.all([build.arches[0], response.ok ? response.json() : {}]));
+
+                // return Promise.all(build.arches.map(arch => {
+                //     fetch(`${base}/${build.id}/${arch}/meta.json`)
+                //         .then(response => Promise.all([arch, response.ok ? response.json() : {}]));
+                // }));
+            }
+
+            function fetchBuildCommitMeta(base, build, basearch, legacy) {
+                if (legacy) {
+                    return fetch(`${base}/${build.id}/commitmeta.json`)
+                        .then(response => response.ok ? response.json() : {});
+                }
+                return fetch(`${base}/${build.id}/${basearch}/commitmeta.json`)
+                    .then(response => response.ok ? response.json() : {});
+            }
+
+            function copyToClipboard(text) {
+                navigator.clipboard.writeText(text);
+            }
+
+            var app = new Vue({
+                el: '#app',
+                data: {
+                    // currently selected stream
+                    stream: 'walters',
+                    // if current stream is "developer", currently entered developer
+                    developer: "",
+                    // current url to builds/ dir for stream
+                    buildsUrl: "",
+                    // whether the currently selected stream has a legacy layout
+                    // https://github.com/coreos/coreos-assembler/pull/580
+                    legacy: false,
+                    // list of {id, arches, meta, commitmeta} build objects
+                    // XXX: in non-legacy mode, meta and commitmeta are those
+                    // of the first arch, but in the future these would be e.g.
+                    // meta[arch] and commitmeta[arch]
+                    builds: [],
+                    // list of unshown {id, arches, meta, commitmeta} build objects
+                    unshown_builds: [],
+                    // toggles "Loading..."
+                    loading: false
+                },
+                created: function() { this.refreshBuilds() },
+                watch: { stream: 'refreshBuilds' },
+                methods: {
+                    refreshBuilds: function() {
+                        this.loading = true
+                        this.buildsUrl = getBaseUrl(this.stream, this.developer) + "/builds"
+                        fetchBuilds(this.buildsUrl).then(result => {
+                            [legacy, builds] = result;
+                            // first populate and show the build list
+                            this.loading = false;
+                            this.legacy = legacy;
+                            this.builds = [];
+                            this.unshown_builds = [];
+
+                            // and now fetch each build info async
+                            builds.forEach((build, idx) => {
+                                if (idx < initialBuildsShown) {
+                                    this.builds.push(build);
+                                    fetchBuild(this.buildsUrl, build, this.legacy);
+                                } else {
+                                    this.unshown_builds.push(build);
+                                }
+                            })
+                        });
+                    },
+                    loadMoreBuilds: function(n) {
+                        var unshown_builds = this.unshown_builds;
+                        this.unshown_builds = []
+                        unshown_builds.forEach((build, idx) => {
+                            if (n < 0 || idx < n) {
+                                this.builds.push(build);
+                                fetchBuild(this.buildsUrl, build, this.legacy);
+                            } else {
+                                this.unshown_builds.push(build);
+                            }
+                        })
+                    },
+                    getImageUrl: function(build, type) {
+                        var path = build.meta['images'][type]['path'];
+                        var url = getArtifactUrl(this.buildsUrl, build, path, this.legacy);
+                        return `<a href="${url}">${path}</a> ` +
+                            `(<a title="Copy image link to clipboard" class="js"
+                                 onclick="copyToClipboard('${url}')">copy link</a>)`;
+                    },
+                    getObjectUrl: function(build, path) {
+                        return getArtifactUrl(this.buildsUrl, build, path, this.legacy);
+                    },
+                    getOSTreeUrl: function(build) {
+                        if ('ostree' in build.meta['images']) {
+                            var path = build.meta['images']['ostree']['path'];
+                            return getArtifactUrl(this.buildsUrl, build, path, this.legacy)
+                        }
+                        return this.getObjectUrl(build, "ostree-commit.tar")
+                    },
+                    getObjectLink: function(build, path) {
+                        return createArtifactLink(this.buildsUrl, build, path, this.legacy);
+                    },
+                    getPkgNevra: function(tuple) {
+                        return `${tuple[0]}-${tuple[1]}.${tuple[2]}`;
+                    },
+                    getPkgNevraFull: function(tuple) {
+                        if (tuple[1] != 0) {
+                            return `${tuple[0]}-${tuple[1]}:${tuple[2]}-${tuple[3]}.${tuple[4]}`;
+                        }
+                        return `${tuple[0]}-${tuple[2]}-${tuple[3]}.${tuple[4]}`;
+                    },
+                    getPkgEvra: function(tuple) {
+                        return `${tuple[1]}.${tuple[2]}`;
+                    },
+                    // Adapted from https://stackoverflow.com/a/6109105
+                    timeSince: function(rfc3339_timestamp) {
+                        var current = Date.now();
+                        var timestamp = Date.parse(rfc3339_timestamp);
+                        var elapsed = current - timestamp;
+
+                        var msPerMinute = 60 * 1000;
+                        var msPerHour = msPerMinute * 60;
+                        var msPerDay = msPerHour * 24;
+                        var msPerMonth = msPerDay * 30;
+                        var msPerYear = msPerDay * 365;
+
+                        function stringize(n, s) {
+                            return n + ` ${s}` + (n == 1 ? "" : "s") + ' ago';
+                        };
+
+                        if (elapsed < msPerMinute) {
+                             return stringize(Math.floor(elapsed/1000), "second");
+                        } else if (elapsed < msPerHour) {
+                             return stringize(Math.floor(elapsed/msPerMinute), "minute");
+                        } else if (elapsed < msPerDay) {
+                             return stringize(Math.floor(elapsed/msPerHour), "hour");
+                        } else if (elapsed < msPerMonth) {
+                            return stringize(Math.floor(elapsed/msPerDay), "day");
+                        } else if (elapsed < msPerYear) {
+                            return stringize(Math.floor(elapsed/msPerMonth), "month");
+                        } else {
+                            return stringize(Math.floor(elapsed/msPerYear), "year");
+                        }
+                    }
+                }
+            })
+        </script>
+    </body>
+</html>
