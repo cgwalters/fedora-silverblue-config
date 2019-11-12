@@ -22,5 +22,8 @@ ideally more of the [FCOS pipeline](https://github.com/coreos/fedora-coreos-pipe
 Where do I get it?
 ===
 
+See: http://coreosci-walters-silverblue.s3.amazonaws.com/index.html
+
 Builds are currently running in the "coreosci" cluster, see
 https://jenkins-walters-silverblue.apps.coreosci.gcp.devcluster.openshift.com/job/walters-silverblue/job/walters-silverblue-walters-fedora-coreos-pipeline
+
