@@ -1,0 +1,21 @@
+#!/bin/bash
+set -euo pipefail
+# Add a `core` user with sudo, and set it up for
+# automatic login.  Note that unlike the existing Fedora
+# Live images, we don't remove the password.  That's a bad
+# idea in case someone enables SSH (and yes the default
+# ssh config also prevents this, but still).
+
+# On the main installed system, we don't want to do this.
+if grep -q ignition.platform.id=metal /proc/cmdline && \
+   ! [ -f /run/ostree-live ]; then
+   exit 0
+fi
+
+useradd core -G wheel
+echo '%wheel ALL=(ALL) NOPASSWD: ALL' > /etc/sudoers.d/wheel-nopasswd
+cat >> /etc/gdm/custom.conf << EOF
+[daemon]
+AutomaticLoginEnable=True
+AutomaticLogin=core
+EOF

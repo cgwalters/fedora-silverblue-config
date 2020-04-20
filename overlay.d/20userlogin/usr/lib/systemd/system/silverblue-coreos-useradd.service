@@ -1,0 +1,9 @@
+[Unit]
+ConditionFirstBoot=true
+Before=gdm.service
+Before=sshd.service
+Before=systemd-user-sessions.service
+ConditionDirectoryNotEmpty=!/var/home
+
+[Service]
+ExecStart=/sbin/useradd core 
