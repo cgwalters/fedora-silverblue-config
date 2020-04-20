@@ -1,0 +1,13 @@
+[Unit]
+ConditionFirstBoot=true
+RequiresMountsFor=/var/home
+Before=gdm.service
+Before=sshd.service
+Before=systemd-user-sessions.service
+ConditionDirectoryNotEmpty=!/var/home
+
+[Service]
+ExecStart=/usr/libexec/silverblue-core-useradd
+
+[Install]
+WantedBy=multi-user.target

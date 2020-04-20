@@ -23,14 +23,7 @@ postprocess:
     # invert it.
     echo '[daemon]' >> /etc/gdm/custom.conf
     echo 'InitialSetupEnable=true' >> /etc/gdm/custom.conf
-    cat > /usr/lib/systemd/system/silverblue-initial-setup.service << 'EOF'
-    [Unit]
-    ConditionFirstBoot=true
-    Before=gdm.service
-    [Service]
-    ExecStart=/bin/touch /var/lib/gdm/run-initial-setup
-    EOF
-    ln -s ../silverblue-initial-setup.service /usr/lib/systemd/system/multi-user.target.wants
+    # (See the 20userlogin overlay for more)
     # And disable systemd's builtin one
     rm -vf /usr/lib/systemd/system/systemd-firstboot.service /usr/bin/systemd-firstboot \
            /usr/lib/systemd/*.target.wants/systemd-firstboot.service

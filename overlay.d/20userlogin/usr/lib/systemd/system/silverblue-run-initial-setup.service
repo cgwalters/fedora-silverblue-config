@@ -1,0 +1,9 @@
+[Unit]
+ConditionFirstBoot=true
+Before=gdm.service
+
+[Service]
+ExecStart=/bin/touch /var/lib/gdm/run-initial-setup
+
+[Install]
+WantedBy=multi-user.target

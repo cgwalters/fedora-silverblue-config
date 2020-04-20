@@ -1,0 +1,2 @@
+enable silverblue-run-initial-setup.service
+enable silverblue-core-useradd.service
