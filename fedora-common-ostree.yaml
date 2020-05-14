@@ -9,9 +9,8 @@ include:
   - fedora-coreos-config/manifests/fedora-coreos-base.yaml
 
 repos:
-  #- fedora
-  - fedora-next
-  #- fedora-updates
+  - fedora
+  - fedora-updates
   - fedora-coreos-pool
 
 packages:
