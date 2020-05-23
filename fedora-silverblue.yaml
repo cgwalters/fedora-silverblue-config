@@ -27,3 +27,7 @@ postprocess:
     # And disable systemd's builtin one
     rm -vf /usr/lib/systemd/system/systemd-firstboot.service /usr/bin/systemd-firstboot \
            /usr/lib/systemd/*.target.wants/systemd-firstboot.service
+  - |
+    #!/usr/bin/bash
+    # https://github.com/containers/toolbox/pull/440
+    rm -vf /etc/profile.d/toolbox.sh
