@@ -1,2 +1,2 @@
 enable silverblue-run-initial-setup.service
-enable silverblue-core-useradd.service
+enable silverblue-core-gdm-autologin.service
