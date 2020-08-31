@@ -1,5 +1,3 @@
 size: 8
 extra-kargs: {}
-
-
-
+rootfs: btrfs
