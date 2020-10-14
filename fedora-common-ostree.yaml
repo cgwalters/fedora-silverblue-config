@@ -43,6 +43,7 @@ packages:
   # Contains default ostree remote config to be used on client's
   # system for fetching ostree update
   - fedora-repos-ostree
+  - fedora-repos-modular
 
 # Override this from FCOS
 documentation: true
