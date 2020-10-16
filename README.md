@@ -35,7 +35,7 @@ will also work for FCOSB.
 
 ## Consistent build tooling
 
-The coreos-assembler project makes it *much* easier to build
+The [coreos-assembler project](https://github.com/coreos/coreos-assembler/) makes it *much* easier to build
 and test Fedora CoreOS-like systems than "raw" rpm-ostree
 plus the existing array of Fedora image build tools.  Everything
 needed to build and test comes as one big container image

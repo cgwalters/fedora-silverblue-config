@@ -1,6 +1,5 @@
 include: gnome-desktop-pkgs.yaml
-ref: fedora/32/${basearch}/silverblue
-releasever: 32
+ref: fedora/33/${basearch}/silverblue
 rojig:
   name: fedora-silverblue
   summary: "Fedora Silverblue base image"
