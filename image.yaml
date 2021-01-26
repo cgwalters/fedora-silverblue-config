@@ -5,4 +5,5 @@ extra-kargs: {}
 ignition-network-kcmdline: []
 sysroot-readonly: true
 # Silverblue only
-rootfs: btrfs
+# https://bugzilla.kernel.org/show_bug.cgi?id=203621
+#rootfs: btrfs
