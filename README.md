@@ -1,3 +1,11 @@
+This project is archived
+===
+
+Instead, I am putting my efforts into https://fedoraproject.org/wiki/Changes/OstreeNativeContainerStable
+which will help lead to code sharing between Fedora Silverblue and Fedora CoreOS and other editions.
+
+HISTORICAL README follows
+
 Fedora Silverblue Config based on Fedora CoreOS
 ===
 
